@@ -1,4 +1,4 @@
-import { station_names } from "./station_name_v10194";
+import { station_names } from "../utils/station_name_v10194";
 import React, { useState } from "react";
 import { Button, DatePicker, Form, Select, Table } from "antd";
 const { Option } = Select;
