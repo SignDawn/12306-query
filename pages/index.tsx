@@ -1,6 +1,7 @@
+/**常去官网更新 */
 import { station_names } from "../utils/station_name_v10194";
 import React, { useState } from "react";
-import { Button, DatePicker, Form, Select, Table } from "antd";
+import { Button, DatePicker, Form, Select, Table, message } from "antd";
 const { Option } = Select;
 
 function getStationOptions() {
@@ -109,6 +110,11 @@ export default () => {
       body: JSON.stringify(values),
     });
     const { data } = await res.json();
+
+    if (!data) {
+      message.error("初次请求失败");
+      return;
+    }
 
     await delay(1000);
 
@@ -262,6 +268,14 @@ async function queryHasTicketAndMaxLongStation(
 
   // 起始站 - 起始站 无意义
   for (let i = inStations.length - 1; i >= 1; i--) {
+    const to_station = stationOptions.find(
+      (item) => item.label === inStations[i].station_name
+    )?.value;
+    if (!to_station) {
+      message.error(`${inStations[i].station_name} 不存在，请联系管理员`);
+      continue;
+    }
+
     const res = await fetch(`/api/leftTicketDTO`, {
       method: "POST",
       headers: {
@@ -270,13 +284,18 @@ async function queryHasTicketAndMaxLongStation(
       body: JSON.stringify({
         train_date: value.train_date,
         from_station: train.from,
-        to_station: stationOptions.find(
-          (item) => item.label === inStations[i].station_name
-        )?.value,
+        to_station,
       }),
     });
 
     const { data } = await res.json();
+
+    if (!data) {
+      message.error(
+        `${train.from}到${to_station} 查不到，请联系管理员，日期：${value.train_date}`
+      );
+      continue;
+    }
 
     await delay(1000);
 
@@ -286,7 +305,7 @@ async function queryHasTicketAndMaxLongStation(
     );
 
     if (!trainData) {
-      console.warn('data.result', data.result);
+      console.warn("data.result", data.result);
       continue;
     }
 

@@ -8,7 +8,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   });
 
   const Cookie = conf.headers.get("set-cookie") as string;
-
   const ticketQuery = await fetch(
     `https://kyfw.12306.cn/otn/leftTicket/query?leftTicketDTO.train_date=${train_date}&leftTicketDTO.from_station=${from_station}&leftTicketDTO.to_station=${to_station}&purpose_codes=ADULT`,
     {
@@ -18,6 +17,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       },
     }
   );
-  const ticketData = await ticketQuery.json();
-  res.status(200).json(ticketData);
+  let ticketData = null;
+  try {
+    ticketData = await ticketQuery.json();
+  } catch (error) {
+    console.error('ticketQuery', ticketQuery);
+  }
+  res.status(200).json(ticketData || {});
 };
