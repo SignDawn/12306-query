@@ -1,7 +1,7 @@
 /**常去官网更新 */
 import { station_names } from "../utils/station_name_v10194";
 import React, { useState } from "react";
-import { Button, DatePicker, Form, Select, Table, message } from "antd";
+import { Button, DatePicker, Form, Input, Select, Table, message } from "antd";
 const { Option } = Select;
 
 function getStationOptions() {
@@ -122,7 +122,16 @@ export default () => {
       return getTrainByString(item);
     });
 
-    for (const train of trainList) {
+    // 过滤一下 code
+    values.codes = (values.codes as string)?.trim();
+    const codeList: string[] = (values.codes as string)?.split(",");
+    const filterTrainList =
+      !codeList || !codeList.length
+        ? trainList
+        : trainList.filter((train) => codeList.includes(train.code));
+
+
+    for (const train of filterTrainList) {
       // 通过每个车次去查询经过站
       const res = await fetch(`/api/queryByTrainNo`, {
         method: "POST",
@@ -146,7 +155,7 @@ export default () => {
     }
 
     setLoading(false);
-    setList(trainList);
+    setList(filterTrainList);
   }
 
   const columns = [
@@ -241,6 +250,11 @@ export default () => {
         <Form.Item name="train_date" label="日期" rules={[{ required: true }]}>
           <DatePicker />
         </Form.Item>
+
+        <Form.Item name={"codes"} label={"车次,用英文逗号隔开"}>
+          <Input />
+        </Form.Item>
+
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Submit
